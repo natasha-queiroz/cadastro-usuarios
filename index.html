@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .actions button {
+            margin-right: 5px;
+            padding: 5px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .form-section label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        .form-section input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .form-section button {
+            padding: 10px 20px;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            table, th, td {
+                font-size: 14px;
+            }
+
+            .modal-content {
+                width: 95%;
+            }
+
+            .form-section input {
+                padding: 8px;
+            }
+
+            .form-section button {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>CADASTRO DE USUARIOS</h1>
+    <button onclick="showForm()">Add New User</button>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Username</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="userTable">
+            <!-- User rows will be added here dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cancelForm()">&times;</span>
+            <div class="form-section">
+                <h2 id="formTitle">Add User</h2>
+                <input type="hidden" id="userId">
+                <label for="name">Name:</label>
+                <input type="text" id="name"><br><br>
+                <label for="email">Email:</label>
+                <input type="text" id="email"><br><br>
+                <label for="username">Username:</label>
+                <input type="text" id="username"><br><br>
+                <button onclick="saveUser()">Save</button>
+                <button onclick="cancelForm()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let users = [
+            { id: 1, name: 'Alice', email: 'alice@example.com', username: 'alice123' },
+            { id: 2, name: 'Bob', email: 'bob@example.com', username: 'bob456' },
+        ];
+
+        function renderTable() {
+            const userTable = document.getElementById('userTable');
+            userTable.innerHTML = '';
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.username}</td>
+                    <td class="actions">
+                        <button onclick="readUser(${user.id})">Read</button>
+                        <button onclick="editUser(${user.id})">Edit</button>
+                        <button onclick="deleteUser(${user.id})">Delete</button>
+                    </td>
+                `;
+                userTable.appendChild(row);
+            });
+        }
+
+        function showForm(id = null) {
+            const userModal = document.getElementById('userModal');
+            const formTitle = document.getElementById('formTitle');
+            const userIdField = document.getElementById('userId');
+            const nameField = document.getElementById('name');
+            const emailField = document.getElementById('email');
+            const usernameField = document.getElementById('username');
+
+            if (id === null) {
+                formTitle.textContent = 'Add User';
+                userIdField.value = '';
+                nameField.value = '';
+                emailField.value = '';
+                usernameField.value = '';
+            } else {
+                const user = users.find(user => user.id === id);
+                formTitle.textContent = 'Edit User';
+                userIdField.value = user.id;
+                nameField.value = user.name;
+                emailField.value = user.email;
+                usernameField.value = user.username;
+            }
+
+            userModal.style.display = 'block';
+        }
+
+        function saveUser() {
+            const userId = document.getElementById('userId').value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const username = document.getElementById('username').value;
+
+            if (userId) {
+                const user = users.find(user => user.id === parseInt(userId));
+                user.name = name;
+                user.email = email;
+                user.username = username;
+            } else {
+                const id = users.length ? users[users.length - 1].id + 1 : 1;
+                users.push({ id, name, email, username });
+            }
+
+            renderTable();
+            cancelForm();
+        }
+
+        function readUser(id) {
+            const user = users.find(user => user.id === id);
+            alert(`Name: ${user.name}\nEmail: ${user.email}\nUsername: ${user.username}`);
+        }
+
+        function editUser(id) {
+            showForm(id);
+        }
+
+        function deleteUser(id) {
+            users = users.filter(user => user.id !== id);
+            renderTable();
+        }
+
+        function cancelForm() {
+            const userModal = document.getElementById('userModal');
+            userModal.style.display = 'none';
+        }
+
+        // Initial render
+        renderTable();
+    </script>
+</body>
+</html>
